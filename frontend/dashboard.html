@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SmartBankPlus • Dashboard</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode:'class',
+      theme:{
+        extend:{
+          fontFamily:{
+            display:['"Playfair Display"','serif'],
+            sans:['Poppins','system-ui','sans-serif']
+          },
+          colors:{
+            brand:'#0f172a',
+            accent:'#0077ff',
+            ink:'#0b0e14',
+            bluish:'#001f3f'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Early Theme -->
+  <script>
+    (()=>{try{
+      const s=localStorage.getItem('theme');
+      const d=matchMedia('(prefers-color-scheme: dark)').matches;
+      if(s==='dark'||(!s&&d)){document.documentElement.classList.add('dark');localStorage.setItem('theme','dark');}
+      else if(s==='light'){document.documentElement.classList.remove('dark');}
+      else{localStorage.setItem('theme','light');}
+    }catch{}})();
+  </script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet"/>
+
+  <!-- Global BlueWave Pro -->
+  <link rel="stylesheet" href="css/bluewave.css"/>
+
+  <!-- Color-tuned overrides -->
+  <style>
+    header{ background: rgba(255,255,255,0.78); }
+    .dark header{ background: rgba(18,22,33,0.85); }
+
+    .sb-glass-strong{
+      backdrop-filter: blur(14px);
+      background: linear-gradient(145deg, rgba(255,255,255,0.92), rgba(240,244,255,0.86));
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 20px;
+      box-shadow: 0 12px 42px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.35);
+    }
+    .dark .sb-glass-strong{
+      background: linear-gradient(145deg, rgba(20,28,46,0.85), rgba(32,40,60,0.9));
+      border: 1px solid rgba(255,255,255,0.15);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .sb-action{
+      border-radius: 18px;
+      backdrop-filter: blur(12px);
+      background: linear-gradient(145deg, rgba(255,255,255,0.92), rgba(245,247,255,0.88));
+      border: 1px solid rgba(0,0,0,0.08);
+      transition: all .2s ease; color:#0f172a;
+    }
+    .sb-action:hover{ transform: translateY(-2px); box-shadow: 0 18px 40px rgba(0,0,0,0.15); }
+    .dark .sb-action{
+      background: linear-gradient(145deg, rgba(26,34,52,0.88), rgba(30,40,64,0.86));
+      border: 1px solid rgba(255,255,255,0.12); color:#e5e7eb;
+    }
+    .dark .sb-action:hover{ box-shadow: 0 22px 50px rgba(0,0,0,0.55); }
+
+    #accounts .card, #accounts .sb-card{
+      border-radius: 16px; padding: 16px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.92), rgba(240,244,255,0.86));
+      border: 1px solid rgba(0,0,0,0.08); color:#0f172a; box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+    }
+    .dark #accounts .card, .dark #accounts .sb-card{
+      background: linear-gradient(145deg, rgba(26,34,52,0.88), rgba(32,40,64,0.9));
+      border: 1px solid rgba(255,255,255,0.12); color:#e5e7eb; box-shadow: 0 18px 48px rgba(0,0,0,0.55);
+    }
+
+    h1.sb-shimmer{
+      background: linear-gradient(90deg,#0077ff,#003366,#0077ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .dark h1.sb-shimmer{
+      background: linear-gradient(90deg,#6ba9ff,#a6c9ff,#6ba9ff);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+
+    .sb-muted{ color: rgba(0,0,0,0.6); }
+    .dark .sb-muted{ color: rgba(255,255,255,0.7); }
+    .sb-watermark{ opacity:.6; } .dark .sb-watermark{ opacity:.5; }
+  </style>
+
+  <!-- Supabase SDK -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+</head>
+
+<body class="text-brand dark:text-white font-sans antialiased min-h-screen selection:bg-accent/20 selection:text-accent">
+  
+  <!-- Animated Background -->
+  <canvas id="sb-bg-layer" aria-hidden="true"></canvas>
+  <div class="sb-blob w-72 h-72 rounded-full" style="background:var(--blobA); top:8%; left:6%"></div>
+  <div class="sb-blob b2 w-80 h-80 rounded-full" style="background:var(--blobB); right:8%; bottom:10%"></div>
+  <div class="sb-watermark">SmartBankPlus</div>
+
+  <!-- NAV -->
+  <header class="sticky top-0 z-40 backdrop-blur border-b border-black/5 dark:border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="font-display tracking-[0.22em]">SMARTBANKPLUS</div>
+      <nav class="hidden md:block">
+        <ul class="flex items-center gap-6 text-sm">
+          <!-- <li><a href="dashboard.html"   class="hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/40 rounded">Dashboard</a></li> -->
+          <!-- <li><a href="transfer.html"    class="hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/40 rounded">Transfer</a></li> -->
+          <li><a href="transactions.html"class="hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/40 rounded">Transactions</a></li>
+          <!-- <li><a href="cards.html"       class="hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/40 rounded">Cards</a></li> -->
+        </ul>
+      </nav>
+      <div class="flex items-center gap-3">
+        <button id="logoutBtn" class="px-4 py-2 rounded-full border border-accent text-accent text-sm hover:bg-accent hover:text-white transition">Logout</button>
+        <button id="sb-theme" class="w-9 h-9 rounded-full border border-black/10 dark:border-white/20 grid place-items-center text-sm hover:bg-black/5 dark:hover:bg-white/10" aria-label="Toggle theme">🌓</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative">
+    <div class="sb-hero-floor max-w-6xl mx-auto px-6 py-10 md:py-14 text-center">
+      <p class="uppercase tracking-[0.28em] text-xs md:text-sm sb-muted mb-2">Welcome to</p>
+      <h1 class="font-display text-4xl md:text-5xl font-bold sb-shimmer">Dashboard</h1>
+      <p class="mt-3 text-sm sb-muted">Balances, quick actions, and accounts — all in one place.</p>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="max-w-7xl mx-auto px-6 pb-16">
+    <!-- Account Header -->
+    <section id="acctHeader" class="sb-glass-strong p-6 md:p-7 sb-reveal"></section>
+
+    <!-- Actions -->
+    <section class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <a class="sb-action p-5 sb-reveal" href="deposit.html">
+        <h3 class="font-semibold">Deposit</h3>
+        <p class="sb-muted text-sm mt-1">Add money to your account</p>
+      </a>
+      <a class="sb-action p-5 sb-reveal" href="withdraw.html">
+        <h3 class="font-semibold">Withdraw</h3>
+        <p class="sb-muted text-sm mt-1">Cash withdrawal</p>
+      </a>
+      <a class="sb-action p-5 sb-reveal" href="transfer.html">
+        <h3 class="font-semibold">Transfer</h3>
+        <p class="sb-muted text-sm mt-1">Send to any bank account</p>
+      </a>
+      <a class="sb-action p-5 sb-reveal" href="cards.html">
+        <h3 class="font-semibold">Cards</h3>
+        <p class="sb-muted text-sm mt-1">Debit/Credit</p>
+      </a>
+    </section>
+
+    <!-- Accounts -->
+    <section class="mt-10">
+      <h2 class="font-display text-2xl md:text-3xl mb-4">Accounts Details</h2>
+      <div id="accounts" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        <!-- dynamically populated by dashboard.js -->
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-black/5 dark:border-white/10 bg-white/80 dark:bg-ink/80 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-6 py-8 text-center text-sm sb-muted">
+      © 2025 SmartBankPlus • Modern Online Banking
+    </div>
+  </footer>
+
+  <!-- BlueWave scripts -->
+  <script type="module">
+    import { initBlueWave, toggleTheme } from './js/ui.js';
+    initBlueWave();
+    document.getElementById('sb-theme')?.addEventListener('click', toggleTheme);
+  </script>
+
+  <!-- App scripts -->
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/dashboard.js"></script>
+
+  <!-- Resolve and apply REAL name from Supabase -->
+  <script>
+    // Try to use whichever client you already create.
+    function getClient(){
+      if (window.sb && window.sb.auth) return window.sb;              // your own global client (common)
+      if (window.supabaseClient && window.supabaseClient.auth) return window.supabaseClient; // sometimes used
+      if (window.supabase && window.supabase.auth) return window.supabase; // fallback if you made a client as supabase
+      return null;
+    }
+
+    function prettifyFromEmail(email){
+      const base = (email||'user').split('@')[0].replace(/[._-]+/g,' ');
+      return base.replace(/\b\w/g, c=>c.toUpperCase());
+    }
+
+    async function fetchOriginalName(){
+      const client = getClient();
+      if (!client) return null;
+
+      const { data: ures } = await client.auth.getUser();
+      const user = ures?.user;
+      if (!user) return null;
+
+      // 1) Prefer accounts.name by user_id (this is what you asked for)
+      const { data: accRow, error: accErr } = await client
+        .from('accounts')
+        .select('name, email')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      if (!accErr && accRow?.name) return accRow.name;
+
+      // 2) Fallback to user metadata
+      const md = user.user_metadata || {};
+      if (md.first_name || md.last_name) return [md.first_name||'', md.last_name||''].join(' ').trim() || null;
+      if (md.full_name) return md.full_name;
+
+      // 3) Final fallback: pretty email
+      return prettifyFromEmail(user.email || accRow?.email || '');
+    }
+
+    async function applyResolvedName() {
+      const name = await fetchOriginalName();
+      if (!name) return;
+
+      const header = document.getElementById('acctHeader');
+      if (!header) return;
+
+      // A) If "New User" exists, replace it directly
+      if (/New User/i.test(header.innerHTML)) {
+        header.innerHTML = header.innerHTML.replace(/New User/gi, name);
+        return;
+      }
+
+      // B) If dashboard.js already put some placeholder at the start, try to target common selectors
+      const candidate = header.querySelector('[data-user-name], .user-name, .name, .sb-name, strong, b, h3, h4, p, div');
+      if (candidate) {
+        // If the first candidate looks like the name line (no @ sign), overwrite it
+        if (!/@/.test(candidate.textContent)) {
+          candidate.textContent = name;
+          return;
+        }
+      }
+
+      // C) As a safe fallback, insert our name line at the very top and try to hide obvious placeholder lines
+      const nameEl = document.createElement('div');
+      nameEl.className = 'font-semibold';
+      nameEl.textContent = name;
+      header.prepend(nameEl);
+
+      // Hide any element whose text is exactly "New User"
+      Array.from(header.querySelectorAll('*')).forEach(el=>{
+        if (el.childElementCount===0 && el.textContent.trim().toLowerCase()==='new user'){
+          el.style.display='none';
+        }
+      });
+    }
+
+    // Wait until your existing code populates acctHeader, then apply name
+    function afterHeaderReady(cb){
+      const header = document.getElementById('acctHeader');
+      if (!header) return;
+      if (header.childElementCount || (header.textContent||'').trim().length > 0) { cb(); return; }
+      const mo = new MutationObserver(()=>{
+        if (header.childElementCount || (header.textContent||'').trim().length > 0) {
+          mo.disconnect(); cb();
+        }
+      });
+      mo.observe(header, { childList:true, subtree:true, characterData:true });
+      setTimeout(()=>{ mo.disconnect(); cb(); }, 4000); // safety
+    }
+  </script>
+
+  <script>
+    // Logout hook stays the same
+    const _btn = document.getElementById('logoutBtn');
+    if (_btn) _btn.onclick = logout;
+
+    // Render dashboard then apply real name
+    initDashboard();
+    afterHeaderReady(applyResolvedName);
+  </script>
+</body>
+</html>

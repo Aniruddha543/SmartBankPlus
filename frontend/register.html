@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SmartBankPlus • Create Account</title>
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { darkMode:'class', theme:{ extend:{ fontFamily:{ display:['"Playfair Display"','serif'], sans:['Poppins','system-ui','sans-serif'] }, colors:{ accent:'#0077ff', ink:'#0b0e14' } } } }
+  </script>
+
+  <!-- Early theme -->
+  <script>
+    (()=>{try{
+      const s=localStorage.getItem('theme');
+      const d=matchMedia('(prefers-color-scheme: dark)').matches;
+      if(s==='dark'||(!s&&d)){document.documentElement.classList.add('dark');localStorage.setItem('theme','dark');}
+      else if(s==='light'){document.documentElement.classList.remove('dark');}
+      else{localStorage.setItem('theme','light');}
+    }catch{}})();
+  </script>
+
+  <!-- Fonts + Theme CSS -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/bluewave.css"/>
+
+  <!-- Supabase CDN -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <!-- 🔐 set your Supabase project credentials -->
+  <script>
+    window.SB_SUPABASE_URL = "https://tflaixnpvmrksnvskwui.supabase.co";     /* <-- replace */
+    window.SB_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmbGFpeG5wdm1ya3NudnNrd3VpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1MDM4MzEsImV4cCI6MjA3NzA3OTgzMX0.1aOuldI5foFXZMEi54WkH6Ci_bghNmUeHDzvMrl8NdY";            /* <-- replace */
+  </script>
+</head>
+
+<body class="text-brand dark:text-white font-sans antialiased min-h-screen selection:bg-accent/20 selection:text-accent">
+  <!-- Background -->
+  <canvas id="sb-bg-layer" aria-hidden="true"></canvas>
+  <div class="sb-blob w-72 h-72 rounded-full" style="background:var(--blobA); top:8%; left:6%"></div>
+  <div class="sb-blob b2 w-80 h-80 rounded-full" style="background:var(--blobB); right:8%; bottom:10%"></div>
+  <div class="sb-watermark">SmartBankPlus</div>
+
+  <!-- NAV -->
+  <header class="sticky top-0 z-40 bg-white/70 dark:bg-ink/60 backdrop-blur border-b border-black/5 dark:border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="font-display tracking-[0.22em]">SMARTBANKPLUS</a>
+      <div class="flex items-center gap-3">
+        <a href="login.html" class="px-4 py-2 rounded-full border border-accent text-accent text-sm hover:bg-accent hover:text-white transition sb-press">Log In</a>
+        <button id="sb-theme" class="w-9 h-9 rounded-full border border-black/10 dark:border-white/20 grid place-items-center text-sm hover:bg-black/5 dark:hover:bg-white/10" aria-label="Toggle theme">🌓</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- FORM CARD -->
+  <main class="max-w-5xl mx-auto px-6 py-10 md:py-16">
+    <div class="sb-glass p-8 md:p-10 sb-reveal">
+      <h1 class="font-display text-3xl md:text-4xl mb-2 sb-shimmer">Create account</h1>
+      <p class="sb-muted mb-6">Open your SmartBankPlus account in minutes.</p>
+
+      <form id="registerForm" class="grid grid-cols-1 md:grid-cols-2 gap-4" autocomplete="on">
+        <input id="first_name" placeholder="First name" required
+               class="px-4 py-3 rounded-lg bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/10 outline-none focus:ring-2 focus:ring-accent/30"/>
+
+        <input id="last_name" placeholder="Last name" required
+               class="px-4 py-3 rounded-lg bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/10 outline-none focus:ring-2 focus:ring-accent/30"/>
+
+        <input id="email" type="email" placeholder="Email" required
+               class="md:col-span-2 px-4 py-3 rounded-lg bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/10 outline-none focus:ring-2 focus:ring-accent/30"/>
+
+        <input id="password" type="password" placeholder="Password (min 6 chars)" minlength="6" required
+               class="md:col-span-2 px-4 py-3 rounded-lg bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/10 outline-none focus:ring-2 focus:ring-accent/30"/>
+
+        <input id="account_number" placeholder="Preferred Account Number (e.g., SB-123456)" required
+               pattern="^SB-[0-9]{6,}$"
+               class="md:col-span-2 px-4 py-3 rounded-lg bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/10 outline-none focus:ring-2 focus:ring-accent/30"/>
+
+        <div class="md:col-span-1">
+          <label for="account_type" class="block text-sm sb-muted mb-1">Type of account</label>
+          <select id="account_type" class="w-full px-4 py-3 rounded-lg bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/10 focus:ring-2 focus:ring-accent/30">
+            <option value="SAVINGS">SAVINGS</option>
+            <option value="CURRENT">CURRENT</option>
+            <option value="SALARY">SALARY</option>
+          </select>
+        </div>
+
+        <div class="md:col-span-1 flex items-end">
+          <button type="submit" id="registerBtn"
+                  class="w-full md:w-auto px-6 py-3 rounded-full bg-accent text-white sb-press">
+            Create account
+          </button>
+        </div>
+      </form>
+
+      <!-- alert -->
+      <div id="alert" class="mt-4 hidden p-3 rounded-lg border"></div>
+
+      <p class="sb-muted text-sm mt-6">Already have an account? <a href="login.html" class="text-accent underline">Sign in</a></p>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-black/5 dark:border-white/10 bg-white/60 dark:bg-ink/60 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-6 py-8 text-center text-sm sb-muted">
+      © 2025 SmartBankPlus
+    </div>
+  </footer>
+
+  <!-- UI helpers -->
+  <script type="module">
+    import { initBlueWave, toggleTheme } from './js/ui.js';
+    initBlueWave();
+    document.getElementById('sb-theme')?.addEventListener('click', toggleTheme);
+  </script>
+
+  <!-- Page logic -->
+  <script>
+    // ----- setup supabase client -----
+    if (!window.SB_SUPABASE_URL || !window.SB_SUPABASE_ANON_KEY) {
+      console.warn('Set SB_SUPABASE_URL and SB_SUPABASE_ANON_KEY at the top of register.html');
+    }
+    const sb = (window.supabase && window.SB_SUPABASE_URL && window.SB_SUPABASE_ANON_KEY)
+      ? window.supabase.createClient(window.SB_SUPABASE_URL, window.SB_SUPABASE_ANON_KEY)
+      : null;
+
+    // ----- helpers -----
+    const alertBox = document.getElementById('alert');
+    function showAlert(kind, msg){
+      alertBox.className = 'mt-4 p-3 rounded-lg border';
+      if(kind==='ok'){
+        alertBox.classList.add('border-green-300','bg-green-50','text-green-800','dark:bg-green-900/30','dark:text-green-200','dark:border-green-700');
+      } else {
+        alertBox.classList.add('border-red-300','bg-red-50','text-red-800','dark:bg-red-900/30','dark:text-red-200','dark:border-red-700');
+      }
+      alertBox.textContent = msg;
+      alertBox.classList.remove('hidden');
+    }
+    function hideAlert(){ alertBox.classList.add('hidden'); }
+
+    function setLoading(btn, on){
+      if(!btn) return;
+      btn.disabled = on;
+      btn.dataset._orig = btn.dataset._orig || btn.textContent;
+      btn.textContent = on ? 'Creating...' : btn.dataset._orig;
+      btn.style.opacity = on ? '0.7' : '1';
+    }
+
+    // optional: if you have your own wrapper, expose it as SBPAuth.register
+    window.SBPAuth = window.SBPAuth || {};
+
+    // ----- form submit -----
+    const form = document.getElementById('registerForm');
+    const btn = document.getElementById('registerBtn');
+
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      hideAlert();
+
+      const first_name     = document.getElementById('first_name').value.trim();
+      const last_name      = document.getElementById('last_name').value.trim();
+      const email          = document.getElementById('email').value.trim();
+      const password       = document.getElementById('password').value;
+      const account_number = document.getElementById('account_number').value.trim();
+      const account_type   = document.getElementById('account_type').value;
+
+      // quick validation
+      const acctOk = /^SB-[0-9]{6,}$/.test(account_number);
+      if(!first_name || !last_name || !email || !password || !acctOk){
+        showAlert('err','Please fill all fields correctly. Example account no: SB-123456');
+        return;
+      }
+      if(!sb){
+        showAlert('err','Supabase not configured.');
+        return;
+      }
+
+      try{
+        setLoading(btn, true);
+
+        // 1) Sign up user (stores names as user metadata)
+        const { data: signUpData, error: signUpErr } = await sb.auth.signUp({
+          email,
+          password,
+          options: { data: { first_name, last_name } }
+        });
+        if (signUpErr) throw signUpErr;
+
+        // If email confirmation is ON, session might be null. Try to sign in
+        // (will succeed only if your project is set to auto-confirm or you disabled confirmations).
+        if (!signUpData.session) {
+          const { error: siErr } = await sb.auth.signInWithPassword({ email, password });
+          if (siErr) {
+            // User is created, but cannot sign-in yet (email confirm). Tell the user clearly.
+            showAlert('ok','Account created! Please verify your email to complete sign-in.');
+            setLoading(btn,false);
+            return;
+          }
+        }
+
+        // 2) Insert account row
+        const user = (await sb.auth.getUser()).data.user;
+        if (!user) throw new Error('Could not get authenticated user after sign up.');
+
+        // (Optional) Check uniqueness of account number to avoid duplicates
+        const { data: exists } = await sb
+          .from('accounts')
+          .select('id')
+          .eq('account_number', account_number)
+          .maybeSingle();
+        if (exists) throw new Error('That account number is already taken. Please choose a different one.');
+
+        const full_name = `${first_name} ${last_name}`.trim();
+        const { error: insErr } = await sb
+          .from('accounts')
+          .insert({
+            user_id: user.id,
+            account_number,
+            account_type,
+            name: full_name,
+            email: email,
+            balance: 0
+          });
+        if (insErr) throw insErr;
+
+        showAlert('ok','Account created successfully. Redirecting…');
+        setTimeout(()=> location.href='dashboard.html', 800);
+
+      }catch(err){
+        showAlert('err', err.message || 'Registration failed.');
+      }finally{
+        setLoading(btn, false);
+      }
+    });
+  </script>
+
+  <!-- Background init -->
+  <script type="module">
+    import { blueWaveBackground, revealOnScroll, bindShortcuts } from './js/ui.js';
+    blueWaveBackground(); revealOnScroll(); bindShortcuts();
+  </script>
+</body>
+</html>

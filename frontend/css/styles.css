@@ -1,0 +1,81 @@
+* { box-sizing: border-box; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+body { margin: 0; background: #0d1117; color: #e6edf3; }
+a { color: #58a6ff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.topnav { display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: #161b22; border-bottom: 1px solid #30363d; }
+.topnav button { background: #238636; color: white; border: 0; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+.topnav button:hover { filter: brightness(1.1); }
+
+.container { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+.card { background: #161b22; border: 1px solid #30363d; border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+.card h1, .card h2, .card h3 { margin-top: 0; }
+
+input, select { width: 100%; padding: 10px; margin: 8px 0 12px; border-radius: 6px; border: 1px solid #30363d; background: #0d1117; color: #e6edf3; }
+button { padding: 10px 14px; border: 0; border-radius: 6px; background: #2f81f7; color: white; cursor: pointer; }
+button:hover { filter: brightness(1.1); }
+
+.tx { background: #0d1117; border: 1px solid #30363d; border-radius: 8px; padding: 10px; margin: 8px 0; }
+.tx.CREDIT, .tx.TRANSFER_IN { border-left: 4px solid #238636; }
+.tx.DEBIT, .tx.TRANSFER_OUT { border-left: 4px solid #f85149; }
+
+
+.grid-4 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+  gap: 16px;
+}
+.action {
+  display:block; padding:16px; border:1px solid #30363d; border-radius:10px;
+  background:#161b22; color:#e6edf3;
+}
+.action:hover { text-decoration:none; filter:brightness(1.05); }
+.action.disabled { opacity:.6; pointer-events:none; }
+.balance-pill {
+  padding:10px 16px; border-radius:999px; background:#0d1117; border:1px solid #30363d;
+  font-weight:600; font-size:18px;
+}
+
+.grid-4 { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:16px; }
+.action { display:block; padding:16px; border:1px solid #30363d; border-radius:10px; background:#161b22; color:#e6edf3; }
+.action:hover { text-decoration:none; filter:brightness(1.05); }
+.action.disabled { opacity:.6; pointer-events:none; }
+.balance-pill { padding:10px 16px; border-radius:999px; background:#0d1117; border:1px solid #30363d; font-weight:600; font-size:18px; }
+
+.small-pad { padding: 12px; }
+.controls { display: grid; gap: 12px; }
+.controls .row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { background:#161b22; border:1px solid #30363d; color:#e6edf3; border-radius:999px; padding:6px 10px; cursor:pointer; }
+.chip:hover { filter:brightness(1.05); }
+
+.table-wrap { overflow:auto; }
+.tx-table { width:100%; border-collapse: collapse; }
+.tx-table th, .tx-table td { border-bottom: 1px solid #30363d; padding: 8px; text-align:left; }
+.row-CREDIT, .row-TRANSFER_IN  { border-left: 4px solid #238636; }
+.row-DEBIT,  .row-TRANSFER_OUT { border-left: 4px solid #f85149; }
+
+.card h3 small { font-weight: normal; }
+.card select[data-action="status"] { background:#0d1117; color:#e6edf3; border:1px solid #30363d; border-radius:6px; padding:8px; }
+
+
+/* ===== Balance amount pill fix ===== */
+#acctHeader .balance-pill,
+#acctHeader .amount-pill,
+#acctHeader [class*="balance"],
+#acctHeader [class*="amount"] {
+  background: #ffffff !important;     /* light mode white */
+  color: #0f172a !important;          /* dark text for contrast */
+  border: 1px solid rgba(15,23,42,.1);
+  box-shadow: 0 2px 6px rgba(15,23,42,.08);
+}
+
+.dark #acctHeader .balance-pill,
+.dark #acctHeader .amount-pill,
+.dark #acctHeader [class*="balance"],
+.dark #acctHeader [class*="amount"] {
+  background: rgba(0,0,0,.75) !important;   /* keep dark background for dark mode */
+  color: #fff !important;
+  border: 1px solid rgba(255,255,255,.15);
+  box-shadow: 0 2px 6px rgba(0,0,0,.4);
+}

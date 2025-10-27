@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SmartBankPlus • Log In</title>
+
+  <!-- Tailwind (CDN, zero-build) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode:'class',
+      theme:{
+        extend:{
+          fontFamily:{
+            display:['"Playfair Display"','serif'],
+            sans:['Poppins','system-ui','sans-serif']
+          },
+          colors:{ brand:'#0f172a', accent:'#0077ff', ink:'#0b0e14' }
+        }
+      }
+    }
+  </script>
+
+  <!-- Early theme: prevent flash -->
+  <script>
+    (()=>{try{
+      const s=localStorage.getItem('theme');
+      const d=matchMedia('(prefers-color-scheme: dark)').matches;
+      if(s==='dark'||(!s&&d)){document.documentElement.classList.add('dark');localStorage.setItem('theme','dark');}
+      else if(s==='light'){document.documentElement.classList.remove('dark');}
+      else{localStorage.setItem('theme','light');}
+    }catch{}})();
+  </script>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet"/>
+
+  <!-- BlueWave Pro theme -->
+  <link rel="stylesheet" href="css/bluewave.css"/>
+
+  <!-- Supabase CDN (fallback path if SBPAuth not available) -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <!-- 🔐 Fill these with your actual Supabase project creds (safe to expose anon key in client) -->
+  <script>
+    window.SB_SUPABASE_URL = "https://tflaixnpvmrksnvskwui.supabase.co";      // ← replace
+    window.SB_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmbGFpeG5wdm1ya3NudnNrd3VpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE1MDM4MzEsImV4cCI6MjA3NzA3OTgzMX0.1aOuldI5foFXZMEi54WkH6Ci_bghNmUeHDzvMrl8NdY";            // ← replace
+  </script>
+</head>
+
+<body class="text-brand dark:text-white font-sans antialiased min-h-screen selection:bg-accent/20 selection:text-accent">
+  <!-- Background canvas + blobs + watermark -->
+  <canvas id="sb-bg-layer" aria-hidden="true"></canvas>
+  <div class="sb-blob w-72 h-72 rounded-full" style="background:var(--blobA); top:8%; left:6%"></div>
+  <div class="sb-blob b2 w-80 h-80 rounded-full" style="background:var(--blobB); right:8%; bottom:10%"></div>
+  <div class="sb-watermark">SmartBankPlus</div>
+
+  <!-- NAV -->
+  <header class="sticky top-0 z-40 bg-white/70 dark:bg-ink/60 backdrop-blur border-b border-black/5 dark:border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <a href="index.html" class="font-display tracking-[0.22em]">SMARTBANKPLUS</a>
+      <div class="flex items-center gap-3">
+        <a href="register.html" class="px-4 py-2 rounded-full border border-accent text-accent text-sm hover:bg-accent hover:text-white transition sb-press">Sign Up</a>
+        <button id="sb-theme" class="w-9 h-9 rounded-full border border-black/10 dark:border-white/20 grid place-items-center text-sm hover:bg-black/5 dark:hover:bg-white/10" aria-label="Toggle theme">🌓</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative">
+    <div class="sb-hero-floor max-w-6xl mx-auto px-6 py-12 md:py-16 text-center">
+      <p class="uppercase tracking-[0.3em] text-xs md:text-sm sb-muted mb-2">Welcome back to</p>
+      <h1 class="font-display text-4xl md:text-6xl font-bold sb-shimmer">SmartBankPlus</h1>
+      <p class="mt-4 text-sm sb-muted">Secure login to your modern banking.</p>
+    </div>
+  </section>
+
+  <!-- LOGIN CARD -->
+  <main class="max-w-5xl mx-auto px-6 pb-16">
+    <div class="sb-glass p-6 md:p-8 sb-reveal">
+      <!-- Tabs -->
+      <div class="flex gap-2 mb-6" role="tablist" aria-label="Login method">
+        <button id="tab-email"  class="px-4 py-2 rounded-full border border-black/10 dark:border-white/20 bg-white/70 dark:bg-white/5 sb-press" role="tab" aria-selected="true">Email</button>
+        <button id="tab-acct"   class="px-4 py-2 rounded-full border border-black/10 dark:border-white/20 hover:bg-black/5 dark:hover:bg-white/10 sb-press" role="tab" aria-selected="false">Account No.</button>
+      </div>
+
+      <!-- Email form -->
+      <form id="form-email" class="grid grid-cols-1 gap-4" autocomplete="on">
+        <label class="text-sm sb-muted">Email</label>
+        <input id="email" type="email" inputmode="email" required placeholder="you@example.com"
+               class="px-4 py-3 rounded-lg bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/10 outline-none focus:ring-2 focus:ring-accent/30"/>
+
+        <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+          <input id="password" type="password" required placeholder="Password"
+                 class="px-4 py-3 rounded-lg bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/10 outline-none focus:ring-2 focus:ring-accent/30"/>
+          <button type="button" id="togglePwd" class="px-3 py-2 text-xs rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/10">Show</button>
+        </div>
+
+        <div class="flex items-center justify-between">
+          <label class="flex items-center gap-2 text-sm sb-muted">
+            <input id="remember" type="checkbox" class="accent-accent"/> Remember me
+          </label>
+          <a href="#" class="text-sm text-accent underline">Forgot password?</a>
+        </div>
+
+        <button id="btnLoginEmail" type="submit" class="mt-2 px-6 py-3 rounded-full bg-accent text-white sb-press">Log In</button>
+      </form>
+
+      <!-- Account form -->
+      <form id="form-acct" class="grid grid-cols-1 gap-4 hidden" autocomplete="on" novalidate>
+        <label class="text-sm sb-muted">Account Number</label>
+        <input id="account_number" type="text" placeholder="SB-123456" pattern="^SB-[0-9]{6,}$"
+               class="px-4 py-3 rounded-lg bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/10 outline-none focus:ring-2 focus:ring-accent/30"/>
+
+        <div class="grid grid-cols-[1fr_auto] gap-2 items-center">
+          <input id="password_acct" type="password" placeholder="Password"
+                 class="px-4 py-3 rounded-lg bg-white/70 dark:bg-white/5 border border-black/5 dark:border-white/10 outline-none focus:ring-2 focus:ring-accent/30"/>
+          <button type="button" id="togglePwd2" class="px-3 py-2 text-xs rounded-lg border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/10">Show</button>
+        </div>
+
+        <button id="btnLoginAcct" type="submit" class="mt-2 px-6 py-3 rounded-full bg-accent text-white sb-press">Log In</button>
+      </form>
+
+      <!-- Alerts -->
+      <div id="alert" class="mt-4 hidden p-3 rounded-lg border"></div>
+
+      <p class="sb-muted text-sm mt-6">New user?
+        <a href="register.html" class="text-accent underline">Create an account</a>
+      </p>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-black/5 dark:border-white/10 bg-white/60 dark:bg-ink/60 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-6 py-8 text-center text-sm sb-muted">
+      © 2025 SmartBankPlus
+    </div>
+  </footer>
+
+  <!-- BlueWave UI helpers -->
+  <script type="module">
+    import { initBlueWave, toggleTheme } from './js/ui.js';
+    initBlueWave();
+    document.getElementById('sb-theme')?.addEventListener('click', toggleTheme);
+  </script>
+
+  <!-- Page logic -->
+  <script>
+    // Tabs
+    const tabEmail = document.getElementById('tab-email');
+    const tabAcct  = document.getElementById('tab-acct');
+    const formEmail= document.getElementById('form-email');
+    const formAcct = document.getElementById('form-acct');
+
+    function selectTab(which){
+      const emailActive = which === 'email';
+      tabEmail.setAttribute('aria-selected', emailActive);
+      tabAcct.setAttribute('aria-selected', !emailActive);
+      tabEmail.classList.toggle('bg-white/70', emailActive);
+      tabEmail.classList.toggle('dark:bg-white/5', emailActive);
+      tabAcct.classList.toggle('bg-white/70', !emailActive);
+      tabAcct.classList.toggle('dark:bg-white/5', !emailActive);
+      formEmail.classList.toggle('hidden', !emailActive);
+      formAcct.classList.toggle('hidden', emailActive);
+    }
+    tabEmail.addEventListener('click', ()=>selectTab('email'));
+    tabAcct.addEventListener('click',  ()=>selectTab('acct'));
+
+    // Show/hide password
+    const pwd = document.getElementById('password');
+    const togglePwd = document.getElementById('togglePwd');
+    togglePwd.addEventListener('click', ()=>{
+      const t = pwd.getAttribute('type') === 'password' ? 'text' : 'password';
+      pwd.setAttribute('type', t);
+      togglePwd.textContent = t === 'password' ? 'Show' : 'Hide';
+    });
+    const pwd2 = document.getElementById('password_acct');
+    const togglePwd2 = document.getElementById('togglePwd2');
+    togglePwd2.addEventListener('click', ()=>{
+      const t = pwd2.getAttribute('type') === 'password' ? 'text' : 'password';
+      pwd2.setAttribute('type', t);
+      togglePwd2.textContent = t === 'password' ? 'Show' : 'Hide';
+    });
+
+    // Alerts
+    const alertBox = document.getElementById('alert');
+    function showAlert(kind, msg){
+      alertBox.className = 'mt-4 p-3 rounded-lg border';
+      if(kind==='ok'){
+        alertBox.classList.add('border-green-300','bg-green-50','text-green-800','dark:bg-green-900/30','dark:text-green-200','dark:border-green-700');
+      } else {
+        alertBox.classList.add('border-red-300','bg-red-50','text-red-800','dark:bg-red-900/30','dark:text-red-200','dark:border-red-700');
+      }
+      alertBox.textContent = msg;
+      alertBox.classList.remove('hidden');
+    }
+    function hideAlert(){ alertBox.classList.add('hidden'); }
+
+    // Helper: resolve email from account number (Supabase fallback)
+    async function emailFromAccountNumber(client, acctNo){
+      const { data, error } = await client
+        .from('accounts')
+        .select('email')
+        .eq('account_number', acctNo)
+        .maybeSingle();
+      if(error) throw error;
+      return data?.email || null;
+    }
+
+    // Core login runner: tries SBPAuth.login first, else Supabase direct
+    async function runLogin({ email, account_number, password }){
+      hideAlert();
+
+      // 1) If project exposes SBPAuth.login, use it (preferred, uses your existing wiring)
+      if (window.SBPAuth && typeof window.SBPAuth.login === 'function'){
+        return await window.SBPAuth.login({ email, account_number, password });
+      }
+
+      // 2) Fallback: Supabase CDN direct
+      if (!window.SB_SUPABASE_URL || !window.SB_SUPABASE_ANON_KEY || !window.supabase){
+        throw new Error('Supabase not configured. Define SB_SUPABASE_URL and SB_SUPABASE_ANON_KEY.');
+      }
+      const sb = window.supabase.createClient(window.SB_SUPABASE_URL, window.SB_SUPABASE_ANON_KEY);
+
+      // If account number provided, map to email first
+      let loginEmail = email;
+      if (!loginEmail && account_number){
+        loginEmail = await emailFromAccountNumber(sb, account_number);
+        if(!loginEmail) throw new Error('No email found for this account number.');
+      }
+
+      const { data, error } = await sb.auth.signInWithPassword({ email: loginEmail, password });
+      if (error) throw error;
+
+      // Optional: ensure user’s account_number belongs to them if acct route used
+      if (account_number){
+        const { data: acc, error: accErr } = await sb
+          .from('accounts')
+          .select('account_number, user_id')
+          .eq('account_number', account_number)
+          .maybeSingle();
+        if (accErr) throw accErr;
+        if (!acc) throw new Error('Account not found.');
+        // You can add extra checks here if needed
+      }
+
+      return data;
+    }
+
+    // Email login submit
+    document.getElementById('form-email').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      try{
+        const res = await runLogin({ email, password });
+        showAlert('ok','Logged in successfully. Redirecting…');
+        // Redirect after small delay
+        setTimeout(()=>location.href='dashboard.html', 600);
+      }catch(err){
+        showAlert('err', err.message || 'Login failed.');
+      }
+    });
+
+    // Account login submit
+    document.getElementById('form-acct').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const account_number = document.getElementById('account_number').value.trim();
+      const password = document.getElementById('password_acct').value;
+      try{
+        const res = await runLogin({ account_number, password });
+        showAlert('ok','Logged in successfully. Redirecting…');
+        setTimeout(()=>location.href='dashboard.html', 600);
+      }catch(err){
+        showAlert('err', err.message || 'Login failed.');
+      }
+    });
+  </script>
+
+  <!-- BlueWave background init (no modules needed here) -->
+  <script type="module">
+    import { blueWaveBackground, revealOnScroll, bindShortcuts } from './js/ui.js';
+    blueWaveBackground(); revealOnScroll(); bindShortcuts();
+  </script>
+</body>
+</html>

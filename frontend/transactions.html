@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SmartBankPlus • Transactions</title>
+
+  <!-- Tailwind (zero-build) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode:'class',
+      theme:{
+        extend:{
+          fontFamily:{
+            display:['"Playfair Display"','serif'],
+            sans:['Poppins','system-ui','sans-serif']
+          },
+          colors:{ brand:'#0f172a', accent:'#0077ff', ink:'#0b0e14' }
+        }
+      }
+    }
+  </script>
+
+  <!-- Early theme (no flash) -->
+  <script>
+    (()=>{try{
+      const s=localStorage.getItem('theme');
+      const d=matchMedia('(prefers-color-scheme: dark)').matches;
+      if(s==='dark'||(!s&&d)){document.documentElement.classList.add('dark');localStorage.setItem('theme','dark');}
+      else if(s==='light'){document.documentElement.classList.remove('dark');}
+      else{localStorage.setItem('theme','light');}
+    }catch{}})();
+  </script>
+
+  <!-- Fonts + Global skin -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@300;500;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/bluewave.css"/>
+  <link rel="stylesheet" href="css/styles.css"/>
+
+  <!-- Supabase SDK -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <!-- PDF libs (for Export) -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
+  <!-- Color system (white-glass light / deep slate dark) -->
+  <style>
+    .sb-page-bg{position:fixed;inset:0;z-index:-2;background:rgba(255,255,255,.86);backdrop-filter:blur(10px)}
+    .dark .sb-page-bg{background:rgba(18,22,33,.92)}
+    body{color:#0f172a}.dark body{color:#e5e7eb}
+    .sb-muted{color:rgba(0,0,0,.6)}.dark .sb-muted{color:rgba(255,255,255,.7)}
+    header{background:rgba(255,255,255,.78)}.dark header{background:rgba(18,22,33,.85)}
+    .sb-hero-floor{background:linear-gradient(180deg,rgba(255,255,255,.72) 0%,rgba(241,246,255,.58) 100%);border-radius:28px;box-shadow:0 20px 60px rgba(0,0,0,.08) inset,0 10px 30px rgba(0,0,0,.06)}
+    .dark .sb-hero-floor{background:linear-gradient(180deg,rgba(17,24,39,.65) 0%,rgba(11,14,20,.6) 100%);box-shadow:0 24px 70px rgba(0,0,0,.55) inset,0 12px 40px rgba(0,0,0,.28)}
+    .sb-glass-strong{backdrop-filter:blur(16px);background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(240,244,255,.92));border:1px solid rgba(15,23,42,.08);border-radius:20px;box-shadow:0 14px 44px rgba(15,23,42,.10),inset 0 1px 0 rgba(255,255,255,.55)}
+    .dark .sb-glass-strong{background:linear-gradient(145deg,rgba(20,28,46,.86),rgba(32,40,60,.90));border:1px solid rgba(255,255,255,.12);box-shadow:0 22px 60px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.06)}
+    .controls-card{border-radius:18px;backdrop-filter:blur(14px);background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(246,248,255,.92));border:1px solid rgba(15,23,42,.08);box-shadow:0 14px 40px rgba(15,23,42,.10)}
+    .dark .controls-card{background:linear-gradient(145deg,rgba(26,34,52,.88),rgba(30,40,64,.86));border:1px solid rgba(255,255,255,.12);box-shadow:0 22px 60px rgba(0,0,0,.55)}
+    .chip{border-radius:9999px;padding:.5rem .9rem;font-size:.875rem;border:1px solid rgba(15,23,42,.10);background:linear-gradient(145deg,#fff,#f4f7ff);color:#0f172a;transition:transform .15s ease,box-shadow .15s ease,background .15s ease,color .15s ease,border-color .15s ease}
+    .chip:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(15,23,42,.12)}
+    .chip.active{background:#0077ff;color:#fff;border-color:#0077ff}
+    .dark .chip{background:linear-gradient(145deg,rgba(26,34,52,.85),rgba(30,40,64,.82));border-color:rgba(255,255,255,.14);color:#e5e7eb}
+    .dark .chip.active{background:#3b82f6;border-color:#3b82f6;color:#fff}
+    .sb-glass{background:rgba(255,255,255,.96);border:1px solid rgba(15,23,42,.08);border-radius:18px}
+    .dark .sb-glass{background:rgba(20,28,46,.85);border-color:rgba(255,255,255,.12)}
+    .sb-table{width:100%;border-collapse:collapse;font-size:.95rem}
+    .sb-table thead th{text-align:left;padding:.9rem .8rem;font-weight:600;background:#fff;color:#0f172a;border-bottom:1px solid rgba(15,23,42,.10)}
+    .sb-table tbody td{padding:.85rem .8rem;border-bottom:1px solid rgba(15,23,42,.06)}
+    .sb-table tbody tr:nth-child(odd) td{background:rgba(15,23,42,.02)}
+    .sb-table tbody tr:hover td{background:rgba(0,119,255,.06)}
+    .dark .sb-table thead th{background:rgba(20,28,46,.90);color:#e5e7eb;border-color:rgba(255,255,255,.10)}
+    .dark .sb-table tbody td{border-bottom:1px solid rgba(255,255,255,.08)}
+    .dark .sb-table tbody tr:nth-child(odd) td{background:rgba(255,255,255,.03)}
+    .dark .sb-table tbody tr:hover td{background:rgba(255,255,255,.06)}
+  </style>
+</head>
+
+<body class="text-brand dark:text-white font-sans antialiased min-h-screen selection:bg-accent/20 selection:text-accent">
+  <div class="sb-page-bg" aria-hidden="true"></div>
+
+  <!-- Background system -->
+  <canvas id="sb-bg-layer" aria-hidden="true"></canvas>
+  <div class="sb-blob w-72 h-72 rounded-full" style="background:var(--blobA); top:8%; left:6%"></div>
+  <div class="sb-blob b2 w-80 h-80 rounded-full" style="background:var(--blobB); right:8%; bottom:10%"></div>
+  <div class="sb-watermark">SmartBankPlus</div>
+
+  <!-- NAV -->
+  <header class="sticky top-0 z-40 backdrop-blur border-b border-black/5 dark:border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="font-display tracking-[0.22em]">SMARTBANKPLUS</div>
+      <nav class="hidden md:block" aria-label="Primary">
+        <ul class="flex items-center gap-6 text-sm">
+          <li><a href="dashboard.html" class="hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/40 rounded">Dashboard</a></li>
+          <li><a href="transfer.html"  class="hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/40 rounded">Transfer</a></li>
+          <li><span class="text-accent font-medium">Transactions</span></li>
+        </ul>
+      </nav>
+      <div class="flex items-center gap-3">
+        <button id="logoutBtn" class="px-4 py-2 rounded-full border border-accent text-accent text-sm hover:bg-accent hover:text-white transition">Logout</button>
+        <button id="sb-theme" class="w-9 h-9 rounded-full border border-black/10 dark:border-white/20 grid place-items-center text-sm hover:bg-black/5 dark:hover:bg-white/10" aria-label="Toggle theme">🌓</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative">
+    <div class="sb-hero-floor max-w-6xl mx-auto px-6 py-8 md:py-12 text-center">
+      <h1 class="font-display text-3xl md:text-4xl font-bold sb-shimmer">Transactions</h1>
+      <p class="mt-2 text-sm sb-muted">Search, filter, and export your account activity.</p>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="max-w-7xl mx-auto px-6 pb-16">
+    <!-- Account header -->
+    <section id="acctHeader" class="sb-glass-strong p-5 md:p-6 sb-reveal"></section>
+
+    <!-- Controls -->
+    <section class="controls-card p-5 md:p-6 mt-6 sb-reveal">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+        <div>
+          <label class="block text-sm sb-muted mb-1" for="accSel">Account</label>
+          <select id="accSel" class="w-full px-4 py-3 rounded-lg bg-white dark:bg-white/5 border border-black/5 dark:border-white/10 focus:ring-2 focus:ring-accent/30"></select>
+        </div>
+
+        <div>
+          <label class="block text-sm sb-muted mb-1">Filter</label>
+          <div class="flex flex-wrap gap-2">
+            <button class="chip" data-range="today" type="button">Today</button>
+            <button class="chip" data-range="10d"   type="button">Last 10 days</button>
+            <button class="chip" data-range="1m"    type="button">Last 1 month</button>
+            <button class="chip" data-range="1y"    type="button">Last 1 year</button>
+            <button class="chip" data-range="all"   type="button">All</button>
+          </div>
+        </div>
+
+        <div class="flex md:justify-end">
+          <button id="exportBtn" class="px-5 py-3 rounded-full bg-accent text-white sb-press">Export PDF</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Table -->
+    <section class="sb-glass p-0 mt-6 overflow-hidden sb-reveal">
+      <div class="overflow-x-auto">
+        <table id="txTable" class="sb-table">
+          <thead>
+            <tr>
+              <th>Date/Time</th>
+              <th>Type</th>
+              <th>Amount (₹)</th>
+              <th>Details</th>
+              <th>Note</th>
+            </tr>
+          </thead>
+          <tbody id="txBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-black/5 dark:border-white/10 bg-white/80 dark:bg-ink/80 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-6 py-8 text-center text-sm sb-muted">
+      © 2025 SmartBankPlus • Modern Online Banking
+    </div>
+  </footer>
+
+  <!-- BlueWave helpers -->
+  <script type="module">
+    import { initBlueWave, toggleTheme } from './js/ui.js';
+    initBlueWave();
+    document.getElementById('sb-theme')?.addEventListener('click', toggleTheme);
+  </script>
+
+  <!-- Your app scripts -->
+  <script src="js/supabaseClient.js?v=1"></script>
+  <script src="js/auth.js?v=1"></script>
+  <script src="js/transactions.js?v=1"></script>
+
+  <!-- Name resolution + PDF export (fixed) -->
+  <script>
+    // ===== Supabase client resolver =====
+    function getClient(){
+      if (window.sb && window.sb.auth) return window.sb;
+      if (window.supabaseClient && window.supabaseClient.auth) return window.supabaseClient;
+      if (window.supabase && window.supabase.auth) return window.supabase;
+      return null;
+    }
+    function prettyFromEmail(email){
+      const base = (email||'user').split('@')[0].replace(/[._-]+/g,' ');
+      return base.replace(/\b\w/g, c=>c.toUpperCase());
+    }
+    async function getAuthedUser(client){
+      const sessRes = await client.auth.getSession().catch(()=>({}));
+      const userFromSess = sessRes?.data?.session?.user;
+      if (userFromSess) return userFromSess;
+      const { data } = await client.auth.getUser().catch(()=>({}));
+      return data?.user || null;
+    }
+
+    // Try: accounts.name → profiles.full_name → user metadata → email
+    async function resolveDisplayIdentity(){
+      const client = getClient();
+      if (!client) return { name:null, email:null };
+
+      const user = await getAuthedUser(client);
+      if (!user) return { name:null, email:null };
+
+      // accounts
+      const { data: accRow } = await client
+        .from('accounts')
+        .select('name,email')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: true })
+        .limit(1)
+        .maybeSingle();
+
+      // profiles (optional table; ignore errors)
+      let profileName = null;
+      try{
+        const { data: prof } = await client.from('profiles').select('full_name').eq('id', user.id).maybeSingle();
+        if (prof?.full_name) profileName = String(prof.full_name).trim();
+      }catch{}
+
+      const md = user.user_metadata || {};
+      const metaName = [md.first_name, md.last_name].filter(Boolean).join(' ').trim() || (md.full_name||'').toString().trim();
+
+      const email = user.email || accRow?.email || null;
+
+      let name = accRow?.name?.trim()
+              || profileName
+              || (metaName || '').trim()
+              || (email ? prettyFromEmail(email) : null);
+
+      if (name && /new user/i.test(name)) name = email ? prettyFromEmail(email) : 'User';
+
+      return { name: name || null, email };
+    }
+
+    // Read any already-rendered name from header
+    function readNameFromHeader(){
+      const header = document.getElementById('acctHeader');
+      if (!header) return null;
+      const el = header.querySelector('[data-user-name], .user-name, .sb-name, .name, h3, h4, strong, b');
+      let txt = (el?.textContent || header.innerText || '').trim();
+      if (!txt) return null;
+      txt = txt.replace(/\b(Account|Account No:.*|Type:.*)\b/gi,'').trim();
+      if (!txt || /new user/i.test(txt)) return null;
+      if (/\S+@\S+/.test(txt)) return prettyFromEmail(txt);
+      return txt;
+    }
+
+    // Wait until acctHeader has something (or 4s max)
+    function afterHeaderReady(cb){
+      const header = document.getElementById('acctHeader');
+      if (!header) return cb();
+      const hasContent = () => header.childElementCount || (header.textContent||'').trim().length > 0;
+      if (hasContent()) { cb(); return; }
+      const mo = new MutationObserver(()=>{
+        if (hasContent()) { mo.disconnect(); cb(); }
+      });
+      mo.observe(header, { childList:true, subtree:true, characterData:true });
+      setTimeout(()=>{ mo.disconnect(); cb(); }, 4000);
+    }
+
+    async function getBestDisplayNameEmail(){
+      const nameFromHeader = readNameFromHeader();
+      if (nameFromHeader) return { name:nameFromHeader, email:null };
+      const id = await resolveDisplayIdentity();
+      return { name: id.name || 'User', email: id.email || null };
+    }
+
+    async function applyResolvedName(){
+      const { name } = await getBestDisplayNameEmail();
+      const header = document.getElementById('acctHeader');
+      if (!header) return;
+      if (/New User/i.test(header.innerHTML)) {
+        header.innerHTML = header.innerHTML.replace(/New User/gi, name);
+        return;
+      }
+      const el = header.querySelector('[data-user-name], .user-name, .name, .sb-name, strong, b, h3, h4');
+      if (el && !/@/.test(el.textContent)) { el.textContent = name; return; }
+      const insert = document.createElement('div');
+      insert.className = 'font-semibold';
+      insert.textContent = name;
+      header.prepend(insert);
+    }
+
+    // ===== PDF helpers =====
+    function parseAcctInfoFromHeader(){
+      const txt = (document.getElementById('acctHeader')?.innerText || '').replace(/\s+/g,' ').trim();
+      const numMatch = txt.match(/Account No:\s*([A-Za-z0-9-]+)/i);
+      const typeMatch= txt.match(/Type:\s*([A-Za-z]+)/i);
+      return { number: numMatch ? numMatch[1] : '', type: typeMatch ? typeMatch[1] : '' };
+    }
+    function readTableRows(){
+      const rows = [];
+      document.querySelectorAll('#txBody tr').forEach(tr=>{
+        const cells = [...tr.querySelectorAll('td')].map(td=>td.innerText.trim());
+        if (cells.length >= 5) {
+          rows.push({ when:cells[0], type:cells[1], amount:cells[2], details:cells[3], note:cells[4] });
+        }
+      });
+      return rows;
+    }
+    function parseAmountToNumber(txt){
+      if (!txt) return 0;
+      // remove currency, commas, spaces
+      const clean = String(txt).replace(/[₹,\s]/g,'').replace(/[^\d.-]/g,'');
+      const n = parseFloat(clean);
+      return isNaN(n) ? 0 : n;
+    }
+
+    async function exportPdf(){
+      // Ensure header is rendered & name applied before export
+      await new Promise(res => afterHeaderReady(async ()=>{ await applyResolvedName(); res(); }));
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit:'pt', format:'a4' });
+
+      const { name, email } = await getBestDisplayNameEmail();
+      const acct = parseAcctInfoFromHeader();
+      const rows = readTableRows();
+
+      // Header
+      doc.setFont('helvetica','bold'); doc.setFontSize(16);
+      doc.text('Transactions', 40, 40);
+
+      doc.setFont('helvetica','normal'); doc.setFontSize(11);
+      doc.text(`Name: ${name}`, 40, 62);
+      if (email)       doc.text(`Email: ${email}`, 40, 80);
+      if (acct.number) doc.text(`Account: ${acct.number}`, 40, email ? 98 : 80);
+      if (acct.type)   doc.text(`Type: ${acct.type}`, 40, email ? 116 : (acct.number ? 98 : 98));
+
+      // Table
+      const body = rows.map(r => [r.when, r.type, String(r.amount), r.details || '-', r.note || '-']);
+      const auto = doc.autoTable({
+        startY: 130,
+        head: [['Date/Time','Type','Amount (₹)','Details','Note']],
+        body,
+        styles: { fontSize:10, cellPadding:6 },
+        headStyles: { fillColor:[0,119,255] }
+      });
+
+      // Total Amount (bold 16pt)
+      const total = rows.reduce((s,r)=> s + parseAmountToNumber(r.amount), 0);
+      const endY = auto.lastAutoTable ? auto.lastAutoTable.finalY || 130 : 130;
+      doc.setFont('helvetica','bold'); doc.setFontSize(16);
+      doc.text(`Total Amount (₹): ${total.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`, 40, endY + 28);
+
+      doc.save('transactions.pdf');
+    }
+
+    // ===== Wire-up =====
+    const _btn = document.getElementById('logoutBtn');
+    if (_btn) _btn.onclick = logout;
+
+    // Your existing loader
+    initTransactions();
+
+    // Patch header name once it's ready
+    afterHeaderReady(applyResolvedName);
+
+    // Chip active state
+    document.querySelectorAll('.chip').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+        btn.classList.add('active');
+      });
+    });
+
+    // Export (fixed name/email + total)
+    const exp = document.getElementById('exportBtn');
+    if (exp) exp.onclick = exportPdf;
+  </script>
+</body>
+</html>

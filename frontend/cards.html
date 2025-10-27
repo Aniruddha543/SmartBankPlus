@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SmartBankPlus • Cards</title>
+
+  <!-- Tailwind (zero-build) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode:'class',
+      theme:{
+        extend:{
+          fontFamily:{
+            display:['"Playfair Display"','serif'],
+            sans:['Poppins','system-ui','sans-serif']
+          },
+          colors:{ brand:'#0f172a', accent:'#0077ff', ink:'#0b0e14' }
+        }
+      }
+    }
+  </script>
+
+  <!-- Early theme (no flash) -->
+  <script>
+    (()=>{try{
+      const s=localStorage.getItem('theme');
+      const d=matchMedia('(prefers-color-scheme: dark)').matches;
+      if(s==='dark'||(!s&&d)){document.documentElement.classList.add('dark');localStorage.setItem('theme','dark');}
+      else if(s==='light'){document.documentElement.classList.remove('dark');}
+      else{localStorage.setItem('theme','light');}
+    }catch{}})();
+  </script>
+
+  <!-- Fonts + global skin -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/bluewave.css"/>
+  <link rel="stylesheet" href="css/styles.css"/>
+
+  <!-- Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <!-- Page styles (bold + BlueWave palette) -->
+  <style>
+    * { font-weight: 600 !important; }
+
+    /* Page backdrop */
+    .sb-page-bg{ position: fixed; inset: 0; z-index: -2; background: rgba(255,255,255,.86); backdrop-filter: blur(10px); }
+    .dark .sb-page-bg{ background: rgba(18,22,33,.92); }
+
+    /* Text colors */
+    body{ color:#0f172a; }
+    .dark body{ color:#e5e7eb; }
+    .sb-muted{ color:rgba(0,0,0,.7); }
+    .dark .sb-muted{ color:rgba(255,255,255,.8); }
+
+    /* Navbar */
+    header{ background: rgba(255,255,255,.78); }
+    .dark header{ background: rgba(18,22,33,.85); }
+
+    /* Hero band */
+    .sb-hero-floor{
+      background: linear-gradient(180deg, rgba(255,255,255,.72) 0%, rgba(241,246,255,.58) 100%);
+      border-radius: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.08) inset, 0 10px 30px rgba(0,0,0,.06);
+    }
+    .dark .sb-hero-floor{
+      background: linear-gradient(180deg, rgba(17,24,39,.65) 0%, rgba(11,14,20,.6) 100%);
+      box-shadow: 0 24px 70px rgba(0,0,0,.55) inset, 0 12px 40px rgba(0,0,0,.28);
+    }
+
+    /* Glass container */
+    .sb-glass-strong{
+      backdrop-filter: blur(16px);
+      background: linear-gradient(145deg, rgba(255,255,255,.95), rgba(246,248,255,.92));
+      border: 1px solid rgba(15,23,42,.08);
+      border-radius: 20px;
+      box-shadow: 0 14px 44px rgba(15,23,42,.10), inset 0 1px 0 rgba(255,255,255,.55);
+    }
+    .dark .sb-glass-strong{
+      background: linear-gradient(145deg, rgba(26,34,52,.88), rgba(30,40,64,.86));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 22px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    /* Inputs */
+    .sb-input{
+      width:100%; padding:.9rem 1rem; border-radius:.75rem;
+      background:#ffffff; border:1px solid rgba(15,23,42,.10);
+      outline:none; transition: box-shadow .15s ease, border-color .15s ease;
+    }
+    .sb-input:focus{ border-color:#0077ff; box-shadow: 0 0 0 4px rgba(0,119,255,.18); }
+    .dark .sb-input{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.14); color:#e5e7eb; }
+    .dark .sb-input:focus{ box-shadow: 0 0 0 4px rgba(59,130,246,.28); }
+
+    /* Primary button */
+    .sb-btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:.95rem 1.3rem; border-radius:9999px; font-weight:700;
+      background:#0077ff; color:#fff; border:1px solid #0077ff;
+      transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+    }
+    .sb-btn:hover{ transform: translateY(-1px); box-shadow: 0 16px 36px rgba(0,119,255,.3); }
+
+    /* Active Cards Grid */
+    .card-list{ display:grid; gap:16px; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); }
+    .sb-card-item{
+      border-radius: 18px;
+      padding: 20px;
+      transition: transform .2s ease, box-shadow .2s ease;
+      background: #ffffff; /* Light mode: white */
+      border: 1px solid rgba(15,23,42,.08);
+      box-shadow: 0 10px 24px rgba(15,23,42,.08);
+    }
+    .sb-card-item:hover{ transform: translateY(-2px); box-shadow: 0 18px 40px rgba(0,119,255,.25); }
+    .dark .sb-card-item{
+      background: #1e2a44; /* Dark navy blue background */
+      border: 1px solid rgba(255,255,255,.15);
+      box-shadow: 0 18px 48px rgba(0,0,0,.6);
+    }
+
+    /* Inline select row */
+    .sb-two-col{ display:grid; gap:12px; }
+    @media(min-width:768px){ .sb-two-col{ grid-template-columns:1fr 1fr; } }
+  </style>
+  
+</head>
+
+<body class="text-brand dark:text-white font-sans antialiased min-h-screen selection:bg-accent/20 selection:text-accent">
+  <div class="sb-page-bg" aria-hidden="true"></div>
+
+  <canvas id="sb-bg-layer" aria-hidden="true"></canvas>
+  <div class="sb-blob w-72 h-72 rounded-full" style="background:var(--blobA); top:8%; left:6%"></div>
+  <div class="sb-blob b2 w-80 h-80 rounded-full" style="background:var(--blobB); right:8%; bottom:10%"></div>
+  <div class="sb-watermark">SmartBankPlus</div>
+
+  <!-- NAV -->
+  <header class="sticky top-0 z-40 backdrop-blur border-b border-black/5 dark:border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="font-display tracking-[0.22em]">SMARTBANKPLUS</div>
+      <nav class="hidden md:block" aria-label="Primary">
+        <ul class="flex items-center gap-6 text-sm">
+          <li><a href="dashboard.html" class="hover:text-accent">Dashboard</a></li>
+          <!-- <li><a href="transfer.html" class="hover:text-accent">Transfer</a></li> -->
+          <li><a href="transactions.html" class="hover:text-accent">Transactions</a></li>
+        </ul>
+      </nav>
+      <div class="flex items-center gap-3">
+        <button id="logoutBtn" class="px-4 py-2 rounded-full border border-accent text-accent text-sm hover:bg-accent hover:text-white transition">Logout</button>
+        <button id="sb-theme" class="w-9 h-9 rounded-full border border-black/10 dark:border-white/20 grid place-items-center text-sm hover:bg-black/5 dark:hover:bg-white/10" aria-label="Toggle theme">🌓</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative">
+    <div class="sb-hero-floor max-w-6xl mx-auto px-6 py-8 md:py-12 text-center">
+      <h1 class="font-display text-3xl md:text-4xl font-bold sb-shimmer">Your Cards</h1>
+      <p class="mt-2 text-sm sb-muted">Issue, manage, and simulate card purchases.</p>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="max-w-6xl mx-auto px-6 pb-16">
+    <!-- Issue new card -->
+    <section class="sb-glass-strong p-6 md:p-7 mt-6">
+      <h2 class="text-xl md:text-2xl mb-4">Issue new card</h2>
+      <div class="grid gap-4">
+        <div>
+          <label for="accSel" class="block text-sm sb-muted mb-1">Link to Account</label>
+          <select id="accSel" class="sb-input"></select>
+        </div>
+
+        <div class="sb-two-col">
+          <div>
+            <label for="cardType" class="block text-sm sb-muted mb-1">Card Type</label>
+            <select id="cardType" class="sb-input">
+              <option value="DEBIT">DEBIT</option>
+              <option value="CREDIT">CREDIT</option>
+            </select>
+          </div>
+          <div>
+            <label for="brand" class="block text-sm sb-muted mb-1">Brand</label>
+            <select id="brand" class="sb-input">
+              <option value="VISA">VISA</option>
+              <option value="MASTERCARD">MASTERCARD</option>
+              <option value="RUPAY">RUPAY</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label for="nickname" class="block text-sm sb-muted mb-1">Nickname (optional)</label>
+          <input id="nickname" class="sb-input" placeholder="My Travel Card" />
+        </div>
+
+        <div class="pt-2">
+          <button id="issueBtn" class="sb-btn w-full md:w-auto">Issue Card</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Active Cards -->
+    <section class="mt-10">
+      <h2 class="text-xl md:text-2xl mb-3">Active Cards</h2>
+      <div id="cardsWrap" class="card-list"></div>
+    </section>
+
+    <!-- Simulate Purchase -->
+    <section class="sb-glass-strong p-6 md:p-7 mt-10">
+      <h2 class="text-xl md:text-2xl mb-4">Simulate Card Purchase (demo)</h2>
+      <div class="grid gap-4">
+        <div>
+          <label for="chargeCard" class="block text-sm sb-muted mb-1">Choose Card</label>
+          <select id="chargeCard" class="sb-input"></select>
+        </div>
+        <div>
+          <label for="merchant" class="block text-sm sb-muted mb-1">Merchant</label>
+          <input id="merchant" class="sb-input" placeholder="Amazon, Cafe, etc." />
+        </div>
+        <div>
+          <label for="chargeAmount" class="block text-sm sb-muted mb-1">Amount (₹)</label>
+          <input id="chargeAmount" type="number" min="0.01" step="0.01" class="sb-input" />
+        </div>
+        <div class="pt-2">
+          <button id="chargeBtn" class="sb-btn w-full md:w-auto">Make Purchase</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-black/5 dark:border-white/10 bg-white/80 dark:bg-ink/80 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-6 py-8 text-center text-sm sb-muted">
+      © 2025 SmartBankPlus • Modern Online Banking
+    </div>
+  </footer>
+
+  <!-- BlueWave helpers -->
+  <script type="module">
+    import { initBlueWave, toggleTheme } from './js/ui.js';
+    initBlueWave();
+    document.getElementById('sb-theme')?.addEventListener('click', toggleTheme);
+  </script>
+
+  <!-- App scripts -->
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cards.js"></script>
+  <script>
+    const _btn = document.getElementById('logoutBtn');
+    if (_btn) _btn.onclick = logout;
+    initCards();
+  </script>
+</body>
+</html>

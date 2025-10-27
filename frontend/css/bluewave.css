@@ -1,0 +1,146 @@
+/* ===========================
+   SmartBankPlus • BlueWave Pro
+   Global theme styles (light/dark), background, watermark, glass panels,
+   blobs, starfield/wave animation layer, reveals, and utilities.
+   =========================== */
+
+/* CSS Vars (instant dark-mode via :root + .dark:root) */
+:root{
+  --bg-grad: linear-gradient(180deg,#f5f8ff 0%,#eaf2ff 100%);
+  --mesh: radial-gradient(1200px 600px at 50% -10%, rgba(0,119,255,.14), transparent 60%);
+  --ink: #0b0e14;
+  --watermark: rgba(0,0,0,.04);
+  --blobA: rgba(0,119,255,.35);
+  --blobB: rgba(58,129,246,.30);
+  --brand: #0f172a;          /* slate-900 */
+  --accent: #0077ff;         /* BlueWave core */
+  --accent-2: #3b82f6;       /* tailwind-ish blue-500 */
+  --card: rgba(255,255,255,.72);
+  --card-border: rgba(0,0,0,.06);
+  --text-muted: rgba(0,0,0,.60);
+}
+.dark:root{
+  --bg-grad: linear-gradient(180deg,#070a12 0%,#0b0e14 100%);
+  --mesh: radial-gradient(1200px 600px at 50% -10%, rgba(0,119,255,.22), transparent 60%);
+  --watermark: rgba(255,255,255,.06);
+  --blobA: rgba(0,119,255,.42);
+  --blobB: rgba(99,102,241,.36);
+  --brand: #e5e7eb;
+  --accent: #60a5ff;
+  --accent-2: #60a5fa;
+  --card: rgba(17,24,39,.66);
+  --card-border: rgba(255,255,255,.12);
+  --text-muted: rgba(255,255,255,.72);
+}
+
+/* Base page background */
+html, body { height:100% }
+body{
+  background: var(--bg-grad), var(--mesh);
+  color: var(--brand);
+}
+
+/* Watermark (huge) */
+.sb-watermark{
+  position:fixed; inset:auto 0 7% 0; pointer-events:none; text-align:center;
+  font: 800 clamp(38px,9.2vw,120px) ui-serif, "Playfair Display", serif;
+  letter-spacing:.045em; color: var(--watermark);
+  text-shadow: 0 0 60px rgba(0,119,255,.16);
+  z-index: 0;
+}
+
+/* Glass panel */
+.sb-glass{
+  backdrop-filter: blur(12px);
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  box-shadow:
+    0 10px 40px rgba(0,0,0,.12),
+    inset 0 1px 0 rgba(255,255,255,.14);
+  border-radius: 18px;
+}
+
+/* Neon-ish strong shadow */
+.sb-shadow-neon{
+  box-shadow:
+    0 0 0 4px rgba(0,119,255,.10),
+    0 12px 40px rgba(0,0,0,.30);
+}
+
+/* Accent link/button hover */
+.sb-press{ transition: transform .18s ease, opacity .2s ease; }
+.sb-press:hover{ transform: translateY(-1px); }
+.sb-press:active{ transform: translateY(0); opacity:.96; }
+
+/* Decorative blobs */
+.sb-blob{
+  position:absolute; filter: blur(42px); mix-blend-mode: screen; will-change: transform;
+  animation: sb-float 14s ease-in-out infinite alternate;
+  pointer-events:none; z-index: 0;
+}
+.sb-blob.b2{ animation-delay:.6s }
+@keyframes sb-float{
+  from{ transform: translate3d(0,0,0) scale(1) }
+  to  { transform: translate3d(24px,-40px,0) scale(1.05) }
+}
+
+/* Star/Wave canvas layer (behind all) */
+#sb-bg-layer{ position:fixed; inset:0; z-index:-1; opacity:.65; pointer-events:none; }
+.dark #sb-bg-layer{ opacity:.78; }
+
+/* Gradient shimmer title */
+.sb-shimmer{
+  background: linear-gradient(90deg,#ffffff,#9cc3ff,#ffffff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-size: 200% 100%;
+  animation: sb-shimmer 8s ease-in-out infinite;
+}
+.dark .sb-shimmer{
+  background: linear-gradient(90deg,#e9f2ff,#7fb4ff,#e9f2ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+@keyframes sb-shimmer{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+
+/* Section reveal */
+.sb-reveal{opacity:0; transform: translateY(22px); transition: opacity .9s cubic-bezier(.2,.8,.2,1), transform .9s cubic-bezier(.2,.8,.2,1)}
+.sb-reveal.is-visible{opacity:1; transform: translateY(0)}
+
+/* Hero reflective floor */
+.sb-hero-floor{ position: relative; padding-bottom:64px; }
+.sb-hero-floor::after{
+  content:""; position:absolute; left:50%; transform:translateX(-50%); bottom:0;
+  width:min(1200px,92vw); height:140px;
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.32), rgba(255,255,255,0)),
+    radial-gradient(1200px 200px at 50% 0, rgba(0,119,255,.16), transparent 60%);
+  filter: blur(10px);
+  border-radius: 60px 60px 0 0;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 8px 40px rgba(0,0,0,.18);
+  opacity:.85; pointer-events:none;
+}
+.dark .sb-hero-floor::after{
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.08), rgba(255,255,255,0)),
+    radial-gradient(1200px 200px at 50% 0, rgba(0,119,255,.28), transparent 60%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 18px 60px rgba(0,0,0,.55);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce){
+  .sb-blob, .sb-shimmer{ animation: none !important }
+  .sb-reveal{ opacity:1; transform:none !important }
+}
+
+/* Muted text helper */
+.sb-muted{ color: var(--text-muted); }
+
+
+/* Page backdrop: white glass (light) / deep slate (dark) */
+.sb-page-bg{
+  position: fixed; inset: 0; z-index: -2;
+  background: rgba(255,255,255,.86);   /* white glass */
+  backdrop-filter: blur(10px);          /* soft glass feel */
+}
+.dark .sb-page-bg{
+  background: rgba(18,22,33,.92);      /* deep slate */
+}

@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>SmartBankPlus • Withdraw</title>
+
+  <!-- Tailwind (zero-build) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode:'class',
+      theme:{
+        extend:{
+          fontFamily:{
+            display:['"Playfair Display"','serif'],
+            sans:['Poppins','system-ui','sans-serif']
+          },
+          colors:{ brand:'#0f172a', accent:'#0077ff', ink:'#0b0e14' }
+        }
+      }
+    }
+  </script>
+
+  <!-- Early theme (no flash) -->
+  <script>
+    (()=>{try{
+      const s=localStorage.getItem('theme');
+      const d=matchMedia('(prefers-color-scheme: dark)').matches;
+      if(s==='dark'||(!s&&d)){document.documentElement.classList.add('dark');localStorage.setItem('theme','dark');}
+      else if(s==='light'){document.documentElement.classList.remove('dark');}
+      else{localStorage.setItem('theme','light');}
+    }catch{}})();
+  </script>
+
+  <!-- Fonts + global skin -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Poppins:wght@500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/bluewave.css"/>
+  <link rel="stylesheet" href="css/styles.css"/>
+
+  <!-- Supabase -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
+  <!-- Page styles (bold + BlueWave palette) -->
+  <style>
+    /* Make everything bold */
+    * { font-weight: 600 !important; }
+
+    /* Page backdrop: white glass (light) / deep slate (dark) */
+    .sb-page-bg{
+      position: fixed; inset: 0; z-index: -2;
+      background: rgba(255,255,255,.86);
+      backdrop-filter: blur(10px);
+    }
+    .dark .sb-page-bg{ background: rgba(18,22,33,.92); }
+
+    /* Base text colors + muted */
+    body{ color:#0f172a; }
+    .dark body{ color:#e5e7eb; }
+    .sb-muted{ color:rgba(0,0,0,.7); }
+    .dark .sb-muted{ color:rgba(255,255,255,.8); }
+
+    /* Navbar */
+    header{ background: rgba(255,255,255,.78); }
+    .dark header{ background: rgba(18,22,33,.85); }
+
+    /* Hero band */
+    .sb-hero-floor{
+      background: linear-gradient(180deg, rgba(255,255,255,.72) 0%, rgba(241,246,255,.58) 100%);
+      border-radius: 28px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.08) inset, 0 10px 30px rgba(0,0,0,.06);
+    }
+    .dark .sb-hero-floor{
+      background: linear-gradient(180deg, rgba(17,24,39,.65) 0%, rgba(11,14,20,.6) 100%);
+      box-shadow: 0 24px 70px rgba(0,0,0,.55) inset, 0 12px 40px rgba(0,0,0,.28);
+    }
+
+    /* Glass card */
+    .sb-glass-strong{
+      backdrop-filter: blur(16px);
+      background: linear-gradient(145deg, rgba(255,255,255,.95), rgba(246,248,255,.92));
+      border: 1px solid rgba(15,23,42,.08);
+      border-radius: 20px;
+      box-shadow: 0 14px 44px rgba(15,23,42,.10), inset 0 1px 0 rgba(255,255,255,.55);
+    }
+    .dark .sb-glass-strong{
+      background: linear-gradient(145deg, rgba(26,34,52,.88), rgba(30,40,64,.86));
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 22px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+    }
+
+    /* Inputs */
+    .sb-input{
+      width:100%; padding:.9rem 1rem; border-radius:.75rem;
+      background:#ffffff; border:1px solid rgba(15,23,42,.10);
+      outline:none; transition: box-shadow .15s ease, border-color .15s ease;
+    }
+    .sb-input:focus{ border-color:#0077ff; box-shadow: 0 0 0 4px rgba(0,119,255,.18); }
+    .dark .sb-input{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.14); color:#e5e7eb; }
+    .dark .sb-input:focus{ box-shadow: 0 0 0 4px rgba(59,130,246,.28); }
+
+    /* Primary button */
+    .sb-btn{
+      display:inline-flex; align-items:center; justify-content:center;
+      padding:.95rem 1.3rem; border-radius:9999px; font-weight:700;
+      background:#0077ff; color:#fff; border:1px solid #0077ff;
+      transition: transform .12s ease, box-shadow .12s ease, opacity .12s ease;
+    }
+    .sb-btn:hover{ transform: translateY(-1px); box-shadow: 0 16px 36px rgba(0,119,255,.3); }
+    .sb-btn:disabled{ opacity:.6; cursor:not-allowed; transform:none; box-shadow:none; }
+
+    /* Title shimmer */
+    .sb-shimmer {
+      background: linear-gradient(90deg, #0077ff, #003366, #0077ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 15px rgba(0,119,255,.2);
+    }
+    .dark .sb-shimmer {
+      background: linear-gradient(90deg,#6ba9ff,#a6c9ff,#6ba9ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-shadow: 0 0 20px rgba(107,169,255,.4);
+    }
+  </style>
+</head>
+
+<body class="text-brand dark:text-white font-sans antialiased min-h-screen selection:bg-accent/20 selection:text-accent">
+  <!-- Page background -->
+  <div class="sb-page-bg" aria-hidden="true"></div>
+
+  <!-- Background system -->
+  <canvas id="sb-bg-layer" aria-hidden="true"></canvas>
+  <div class="sb-blob w-72 h-72 rounded-full" style="background:var(--blobA); top:8%; left:6%"></div>
+  <div class="sb-blob b2 w-80 h-80 rounded-full" style="background:var(--blobB); right:8%; bottom:10%"></div>
+  <div class="sb-watermark">SmartBankPlus</div>
+
+  <!-- NAV -->
+  <header class="sticky top-0 z-40 backdrop-blur border-b border-black/5 dark:border-white/10">
+    <div class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="font-display tracking-[0.22em]">SMARTBANKPLUS</div>
+      <nav class="hidden md:block" aria-label="Primary">
+        <ul class="flex items-center gap-6 text-sm">
+          <li><a href="dashboard.html" class="hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/40 rounded">Dashboard</a></li>
+          <!-- <li><a href="transfer.html"  class="hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/40 rounded">Transfer</a></li> -->
+          <li><a href="transactions.html" class="hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/40 rounded">Transactions</a></li>
+        </ul>
+      </nav>
+      <div class="flex items-center gap-3">
+        <button id="logoutBtn" class="px-4 py-2 rounded-full border border-accent text-accent text-sm hover:bg-accent hover:text-white transition">Logout</button>
+        <button id="sb-theme" class="w-9 h-9 rounded-full border border-black/10 dark:border-white/20 grid place-items-center text-sm hover:bg-black/5 dark:hover:bg-white/10" aria-label="Toggle theme">🌓</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- HERO -->
+  <section class="relative">
+    <div class="sb-hero-floor max-w-6xl mx-auto px-6 py-8 md:py-12 text-center">
+      <h1 class="font-display text-3xl md:text-4xl font-bold sb-shimmer">Cash Withdraw</h1>
+      <p class="mt-2 text-sm sb-muted">Take money out from your SmartBankPlus account securely.</p>
+    </div>
+  </section>
+
+  <!-- MAIN -->
+  <main class="max-w-3xl mx-auto px-6 pb-16">
+    <section class="sb-glass-strong p-6 md:p-7 mt-6">
+      <div class="grid gap-5">
+        <div>
+          <label class="block text-sm sb-muted mb-1" for="acc">Account</label>
+          <select id="acc" class="sb-input"></select>
+        </div>
+
+        <div>
+          <label class="block text-sm sb-muted mb-1" for="amount">Amount (₹)</label>
+          <input id="amount" type="number" min="0.01" step="0.01" class="sb-input" placeholder="0.00"/>
+        </div>
+
+        <div>
+          <label class="block text-sm sb-muted mb-1" for="note">Note</label>
+          <input id="note" class="sb-input" placeholder="Optional note"/>
+        </div>
+
+        <div class="pt-3">
+          <button id="go" class="sb-btn w-full md:w-auto">Withdraw</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-black/5 dark:border-white/10 bg-white/80 dark:bg-ink/80 backdrop-blur">
+    <div class="max-w-7xl mx-auto px-6 py-8 text-center text-sm sb-muted">
+      © 2025 SmartBankPlus • Modern Online Banking
+    </div>
+  </footer>
+
+  <!-- BlueWave helpers -->
+  <script type="module">
+    import { initBlueWave, toggleTheme } from './js/ui.js';
+    initBlueWave();
+    document.getElementById('sb-theme')?.addEventListener('click', toggleTheme);
+  </script>
+
+  <!-- App scripts (unchanged logic) -->
+  <script src="js/supabaseClient.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/withdraw.js"></script>
+  <script>
+    const _btn = document.getElementById('logoutBtn'); if (_btn) _btn.onclick = logout;
+    initWithdraw(); // uses IDs: acc, amount, note, go
+  </script>
+</body>
+</html>
